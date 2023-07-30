@@ -8,7 +8,7 @@ Le Front quand a lui est une appli en CLI qui utilise rich et click
 
 Vous n'avez pas besoin des deux sur toute vos machine. Vous pouvez garder seulement le dossier que vous souhaitez selon ce que vous voulez installer
 
-BACK
+#BACK
 
 Pour mettre en place le Back les actions sont les suivantes :
 
@@ -35,8 +35,19 @@ Pour mettre en place le Back les actions sont les suivantes :
 
         pip install -r ../requirements.txt
 
+3. Configurez l'environnement pour la connexion à la base de données
 
-3. Lancer le serveur
+    Veuillez ajouter un fichier .env dans le dossiers epicEvent ou alors les rentrer directement dans les variable d'environnement. Les variables à ajouter sont les suivantes :
+        * 'DATABASE_ENGINE'
+        * 'DATABASE_NAME'
+        * 'DATABASE_USER'
+        * 'DATABASE_PASSWORD'
+        * 'DATABASE_HOST'
+        * 'DATABASE_PORT'
+    
+
+
+4. Lancer le serveur
 
     Windows :
 
@@ -47,7 +58,7 @@ Pour mettre en place le Back les actions sont les suivantes :
         python3 manage.py runserver
 
 
-FRONT
+#FRONT
 
 Pour mettre en place le Front les actions sont les suivantes :
 
