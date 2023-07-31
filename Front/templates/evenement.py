@@ -104,12 +104,13 @@ def create(client_id=None, first_name=None, last_name=None, entreprise=None, con
         data = argumentData(data, entreprise, 'entreprise', "entrez l'entreprise du client ")
     data = argumentData(data, contrat_id, 'contrat_id', "entrez l'id contrat qui va avec l'evenement ")
     data = argumentData(data, nom, 'nom', "entrez le nom de l'evenement ")
+    user_timezone = pytz.timezone('Europe/Paris')
     while not 'date_start' in data:
         date = {}
         date = argumentData(date, date_start, 'date_start', "entrez la date de l'evenement (jj/mm/aaaa) ")
         date = argumentData(date, heure_start, 'heure_start', "entrez l'heure' de l'evenement (hh:mm) ")
         try:
-            data['date_start'] = datetime.strptime(date['date_start']+date['heure_start'], "%d/%m/%Y%H:%M")
+            data['date_start'] = datetime.strptime(date['date_start']+date['heure_start'], "%d/%m/%Y%H:%M").replace(tzinfo=user_timezone)
         except:
             print(f"[bold red] Erreur dans les données rentrer pour la date de strat{date['date_start']+date['heure_start']}. Exemple valide date : '21/8/2028' et heure : '15:30', veuillez recommencé[/bold red]")
     while not 'date_end' in data:
@@ -117,7 +118,7 @@ def create(client_id=None, first_name=None, last_name=None, entreprise=None, con
         date = argumentData(date, date_end, 'date_end', "entrez la date de l'evenement (jj/mm/aaaa) ")
         date = argumentData(date, heure_end, 'heure_end', "entrez l'heure' de l'evenement (hh:mm) ")
         try:
-            data['date_end'] = datetime.strptime(date['date_end']+date['heure_end'], "%d/%m/%Y%H:%M")
+            data['date_end'] = datetime.strptime(date['date_end']+date['heure_end'], "%d/%m/%Y%H:%M").replace(tzinfo=user_timezone)
         except:
             print(f"[bold red] Erreur dans les données rentrer pour la date de strat{date['date_end']+date['heure_end']}. Exemple valide date : '21/8/2028' et heure : '15:30', veuillez recommencé[/bold red]")
     data = argumentData(data, location, 'location', "entrez le lieu de l'evenement ")
@@ -159,16 +160,18 @@ def change(id=None, nom=None, support_email=None, date_start=None, heure_start=N
         date = optionData(date, date_start, 'date_start', "entrez la date de l'evenement (jj/mm/aaaa) ")
         date = optionData(date, heure_start, 'heure_start', "entrez l'heure' de l'evenement (hh:mm) ")
         if date:
+            user_timezone = pytz.timezone('Europe/Paris')
             try:
-                data['date_start'] = datetime.strptime(date['date_start']+date['heure_start'], "%d/%m/%Y%H:%M")
+                data['date_start'] = datetime.strptime(date['date_start']+date['heure_start'], "%d/%m/%Y%H:%M").replace(tzinfo=user_timezone)
             except:
                 print(f"[bold red] Erreur dans les données rentrer pour la date de strat{date['date_start']+date['heure_start']}. Exemple valide date : '21/8/2028' et heure : '15:30', veuillez recommencé[/bold red]")
         date = {}
         date = optionData(date, date_end, 'date_end', "entrez la date de l'evenement (jj/mm/aaaa) ")
         date = optionData(date, heure_end, 'heure_end', "entrez l'heure' de l'evenement (hh:mm) ")
         if date:
+            user_timezone = pytz.timezone('Europe/Paris')
             try:
-                data['date_end'] = datetime.strptime(date['date_end']+date['heure_end'], "%d/%m/%Y%H:%M")
+                data['date_end'] = datetime.strptime(date['date_end']+date['heure_end'], "%d/%m/%Y%H:%M").replace(tzinfo=user_timezone)
             except:
                 print(f"[bold red] Erreur dans les données rentrer pour la date de strat{date['date_end']+date['heure_end']}. Exemple valide date : '21/8/2028' et heure : '15:30', veuillez recommencé[/bold red]")
         data = optionData(data, location, 'location', "entrez le lieu de l'evenement ")
@@ -183,7 +186,7 @@ def change(id=None, nom=None, support_email=None, date_start=None, heure_start=N
         print(f"[bold red]Vous n'avez rien changer a l'evenement[/bold red]")
         return None
     conf = initConfig()
-    response = requests.put(conf['url']+'api/evenements/'+dataUrl['id'], headers=conf["headers"], data=data)
+    response = requests.put(conf['url']+'api/evenements/'+dataUrl['id']+'/', headers=conf["headers"], data=data)
     if statusOK(response):
         reponseJson = response.json()
         if response.status_code == 200:

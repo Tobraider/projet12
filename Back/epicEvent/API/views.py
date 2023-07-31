@@ -2,13 +2,14 @@ from django.shortcuts import render
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
-from datetime import datetime
+# import pytz
 
 from . import models
 from . import permissions
@@ -36,13 +37,17 @@ class UserViewset(APIView):
 
 
     def post(self, request):
+        keysOK = ['password', 'email', 'first_name', 'last_name', 'role']
+        keysOK = sorted(keysOK)
+        listKey = sorted(list(request.POST.keys()))
+        if keysOK != listKey:
+            return Response({'error': 'Erreur dans les informations presente dans le body'}, status=status.HTTP_400_BAD_REQUEST)
         newUser = models.User()
         newUser.email = request.POST.get("email")
         newUser.first_name = request.POST.get("first_name")
         newUser.last_name = request.POST.get("last_name")
         newUser.role = choix_list(models.User.role_choice, request.POST.get("role"))
         newUser.password = make_password(request.POST.get("password"))
-        print(newUser)
         # Verifie si tout les champs sont OK
         try:
             newUser.full_clean()
@@ -111,6 +116,11 @@ class ClientViewset(APIView):
         return Response(serializer.data)
     
     def post(self, request):
+        keysOK = ['tel', 'email', 'first_name', 'last_name', 'entreprise']
+        keysOK = sorted(keysOK)
+        listKey = sorted(list(request.POST.keys()))
+        if keysOK != listKey:
+            return Response({'error': 'Erreur dans les informations presente dans le body'}, status=status.HTTP_400_BAD_REQUEST)
         newClient = models.Client()
         newClient.first_name = request.POST.get("first_name")
         newClient.last_name = request.POST.get("last_name")
@@ -151,7 +161,7 @@ class ClientDetailView(APIView):
             client.tel = request.POST.get("tel")
         if request.POST.get("entreprise"):
             client.entreprise = request.POST.get("entreprise")
-        client.time_update = datetime.now()
+        client.time_update = timezone.now()
         # Verifie si tout les champs sont OK
         try:
             client.full_clean()
@@ -198,6 +208,13 @@ class ContratViewset(APIView):
         
 
     def post(self, request):
+        keysOKone = ['prix_ttl', 'prix_restant', 'statut', 'client_id']
+        keysOKtwo = ['prix_ttl', 'prix_restant', 'statut', 'first_name', 'last_name', 'entreprise']
+        keysOKone = sorted(keysOKone)
+        keysOKtwo = sorted(keysOKtwo)
+        listKey = sorted(list(request.POST.keys()))
+        if keysOKone != listKey and keysOKtwo != listKey:
+            return Response({'error': 'Erreur dans les informations presente dans le body'}, status=status.HTTP_400_BAD_REQUEST)
         newContrat = models.Contrat()
         newContrat.prix_ttl = request.POST.get("prix_ttl")
         newContrat.prix_restant = request.POST.get("prix_restant")
@@ -299,6 +316,13 @@ class EvenementViewset(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request):
+        keysOKone = ['nom', 'date_start', 'date_end', 'location', 'attende', 'note', 'contrat_id', 'client_id']
+        keysOKtwo = ['nom', 'date_start', 'date_end', 'location', 'attende', 'note', 'contrat_id', 'first_name', 'last_name', 'entreprise']
+        keysOKone = sorted(keysOKone)
+        keysOKtwo = sorted(keysOKtwo)
+        listKey = sorted(list(request.POST.keys()))
+        if keysOKone != listKey and keysOKtwo != listKey:
+            return Response({'error': 'Erreur dans les informations presente dans le body'}, status=status.HTTP_400_BAD_REQUEST)
         if request.POST.get("client_id"):
             try:
                 client = models.Client.objects.get(id=int(request.POST.get("client_id")),commercial_contact=request.user)
@@ -318,7 +342,7 @@ class EvenementViewset(APIView):
         evenement.client = client
         try:
             contrat = models.Contrat.objects.get(id=int(request.POST.get("contrat_id")),client=client, statut=True)
-        except models.Client.DoesNotExist:
+        except models.Contrat.DoesNotExist:
             return Response({"message": "Contrat not found"}, status=status.HTTP_404_NOT_FOUND)
         evenement.contrat = contrat
         evenement.nom = request.POST.get("nom")
@@ -355,7 +379,7 @@ class EvenementDetailViewset(APIView):
                 try:
                     support = models.User.objects.get(email=request.POST.get("support_email"))
                 except models.User.DoesNotExist:
-                    return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({"message": "User not found"}, status=status.HTTP_400_NOT_FOUND)
                 evenement.support_contact=support
         else:
             try:

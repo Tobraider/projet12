@@ -13,6 +13,8 @@ from datetime import timedelta
 
 from pathlib import Path
 
+import sys
+
 import os
 from dotenv import load_dotenv
 
@@ -90,10 +92,6 @@ WSGI_APPLICATION = 'epicEvent.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
     'default': {
         'ENGINE': os.getenv('DATABASE_ENGINE'),
         'NAME': os.getenv('DATABASE_NAME'),
@@ -105,11 +103,13 @@ DATABASES = {
             'charset': 'utf8mb4',
         },
     },
-    'test': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
-    }
 }
+
+if 'test' in sys.argv or 'test\_coverage' in sys.argv: #Covers regular testing and django-coverage
+    DATABASES['default']={
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',  # Utilisation de SQLite en mémoire pour les tests
+    }
 
 
 AUTH_USER_MODEL = 'API.User'

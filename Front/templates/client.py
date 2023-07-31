@@ -132,7 +132,7 @@ def change(id=None, email=None, first_name=None, last_name=None, tel=None, entre
         print(f"[bold red]Vous n'avez rien changer au client[/bold red]")
         return None
     conf = initConfig()
-    response = requests.put(conf['url']+'api/clients/'+dataUrl['id'], headers=conf["headers"], data=data)
+    response = requests.put(conf['url']+'api/clients/'+dataUrl['id']+'/', headers=conf["headers"], data=data)
     if statusOK(response):
         reponseJson = response.json()
         if response.status_code == 200:

@@ -127,7 +127,7 @@ def change(id=None, email=None, password=None, validate_password=None, first_nam
         print(f"[bold red]Vous n'avez rien changer a l'utilisateur[/bold red]")
         return None
     conf = initConfig()
-    response = requests.put(conf['url']+'api/users/'+dataUrl['id'], headers=conf["headers"], data=data)
+    response = requests.put(conf['url']+'api/users/'+dataUrl['id']+'/', headers=conf["headers"], data=data)
     if statusOK(response):
         reponseJson = response.json()
         if response.status_code == 200:
@@ -144,7 +144,7 @@ def change(id=None, email=None, password=None, validate_password=None, first_nam
 def delete(id=None):
     dataUrl = argumentData({}, id,'id',"id de l'utilisateur que vous voulez supprimer ?")
     conf = initConfig()
-    response = requests.delete(conf['url']+'api/users/'+dataUrl['id'], headers=conf["headers"])
+    response = requests.delete(conf['url']+'api/users/'+dataUrl['id']+'/', headers=conf["headers"])
     if statusOK(response):
         reponseJson = response.json()
         if response.status_code == 204:

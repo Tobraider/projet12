@@ -130,7 +130,7 @@ def change(id=None, prix_ttl=None, prix_restant=None, statut=None):
         print(f"[bold red]Vous n'avez rien changer au contrat[/bold red]")
         return None
     conf = initConfig()
-    response = requests.put(conf['url']+'api/contrats/'+dataUrl['id'], headers=conf["headers"], data=data)
+    response = requests.put(conf['url']+'api/contrats/'+dataUrl['id']+'/', headers=conf["headers"], data=data)
     if statusOK(response):
         reponseJson = response.json()
         if response.status_code == 200:
