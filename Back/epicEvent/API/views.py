@@ -1,4 +1,4 @@
-from django.shortcuts import render
+# from django.shortcuts import render
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.contrib.auth.hashers import make_password
@@ -15,8 +15,9 @@ from . import models
 from . import permissions
 from . import serializers
 
+
 def choix_list(list, data, default=None):
-    """ Cette fonction permet de regarde si la data est dans tout les choix pour le champ 
+    """ Cette fonction permet de regarde si la data est dans tout les choix pour le champ
         si pas le cas retourne default """
     # default est la pour que la valeur ne change pas si deja setup avant
     pris = default
@@ -25,6 +26,7 @@ def choix_list(list, data, default=None):
             # le 0 est donnée car c'est la valeur que prendra le champ
             pris = choice[0]
     return pris
+
 
 class UserViewset(APIView):
 
@@ -35,13 +37,15 @@ class UserViewset(APIView):
         serializer = serializers.UserSerializer(users, many=True)
         return Response(serializer.data)
 
-
     def post(self, request):
         keysOK = ['password', 'email', 'first_name', 'last_name', 'role']
         keysOK = sorted(keysOK)
         listKey = sorted(list(request.POST.keys()))
         if keysOK != listKey:
-            return Response({'error': 'Erreur dans les informations presente dans le body'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Erreur dans les informations presente dans le body'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
         newUser = models.User()
         newUser.email = request.POST.get("email")
         newUser.first_name = request.POST.get("first_name")
@@ -61,12 +65,12 @@ class UserViewset(APIView):
             return Response({'error': 'email deja utilisé'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = serializers.UserSerializer(newUser)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
 
 class UserDetailViewset(APIView):
 
     permission_classes = [permissions.IsGestionTeam]
-    
+
     def put(self, request, idUser):
         try:
             user = models.User.objects.get(id=idUser)
@@ -79,7 +83,7 @@ class UserDetailViewset(APIView):
         if request.POST.get("last_name"):
             user.last_name = request.POST.get("last_name")
         if request.POST.get("role"):
-            user.role = choix_list(models.User.role_choice, request.POST.get("role"),user.role)
+            user.role = choix_list(models.User.role_choice, request.POST.get("role"), user.role)
         if request.POST.get("password"):
             user.password = make_password(request.POST.get("password"))
         # Verifie si tout les champs sont OK
@@ -95,7 +99,7 @@ class UserDetailViewset(APIView):
             return Response({'error': 'email deja utilisé'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = serializers.UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     def delete(self, request, idUser):
         try:
             user = models.User.objects.get(id=idUser)
@@ -103,7 +107,6 @@ class UserDetailViewset(APIView):
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-        
 
 
 class ClientViewset(APIView):
@@ -114,13 +117,16 @@ class ClientViewset(APIView):
         clients = models.Client.objects.filter(commercial_contact__id=request.user.id)
         serializer = serializers.ClientSerializer(clients, many=True)
         return Response(serializer.data)
-    
+
     def post(self, request):
         keysOK = ['tel', 'email', 'first_name', 'last_name', 'entreprise']
         keysOK = sorted(keysOK)
         listKey = sorted(list(request.POST.keys()))
         if keysOK != listKey:
-            return Response({'error': 'Erreur dans les informations presente dans le body'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Erreur dans les informations presente dans le body'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
         newClient = models.Client()
         newClient.first_name = request.POST.get("first_name")
         newClient.last_name = request.POST.get("last_name")
@@ -138,9 +144,13 @@ class ClientViewset(APIView):
         try:
             newClient.save()
         except IntegrityError:
-            return Response({'error': 'Impossible de sauvegarder le client dans la bdd'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Impossible de sauvegarder le client dans la bdd'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
         serializer = serializers.ClientSerializer(newClient)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class ClientDetailView(APIView):
 
@@ -172,17 +182,12 @@ class ClientDetailView(APIView):
         try:
             client.save()
         except IntegrityError:
-            return Response({'error': 'Impossible de sauvegarder le client dans la bdd'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Impossible de sauvegarder le client dans la bdd'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
         serializer = serializers.ClientSerializer(client)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    # def delete(self, request, idClient):
-    #     try:
-    #         client = models.Client.objects.get(id=idClient)
-    #     except models.Client.DoesNotExist:
-    #         return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-    #     client.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ClientAllViewset(APIView):
@@ -193,6 +198,7 @@ class ClientAllViewset(APIView):
         clients = models.Client.objects.all()
         serializer = serializers.ClientSerializer(clients, many=True)
         return Response(serializer.data)
+
 
 class ContratViewset(APIView):
 
@@ -205,7 +211,6 @@ class ContratViewset(APIView):
             contrats = models.Contrat.objects.filter(commercial_contact__id=request.user.id)
         serializer = serializers.ContratSerializer(contrats, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-        
 
     def post(self, request):
         keysOKone = ['prix_ttl', 'prix_restant', 'statut', 'client_id']
@@ -214,7 +219,10 @@ class ContratViewset(APIView):
         keysOKtwo = sorted(keysOKtwo)
         listKey = sorted(list(request.POST.keys()))
         if keysOKone != listKey and keysOKtwo != listKey:
-            return Response({'error': 'Erreur dans les informations presente dans le body'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Erreur dans les informations presente dans le body'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
         newContrat = models.Contrat()
         newContrat.prix_ttl = request.POST.get("prix_ttl")
         newContrat.prix_restant = request.POST.get("prix_restant")
@@ -249,7 +257,10 @@ class ContratViewset(APIView):
         try:
             newContrat.save()
         except IntegrityError:
-            return Response({'error': 'Impossible de sauvegarder le contrat dans la bdd'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Impossible de sauvegarder le contrat dans la bdd'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
         serializer = serializers.ContratSerializer(newContrat)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -262,12 +273,12 @@ class ContratDetailViewset(APIView):
         if permissions.isThis(request.user.id, models.User.GESTION):
             try:
                 contrat = models.Contrat.objects.get(id=idContrat)
-            except:
+            except models.Contrat.DoesNotExist:
                 return Response({"message": "Contrat not found"}, status=status.HTTP_404_NOT_FOUND)
         else:
             try:
                 contrat = models.Contrat.objects.get(id=idContrat, commercial_contact__id=request.user.id)
-            except:
+            except models.Contrat.DoesNotExist:
                 return Response({"message": "Contrat not found"}, status=status.HTTP_404_NOT_FOUND)
         if request.POST.get("prix_ttl"):
             contrat.prix_ttl = request.POST.get("prix_ttl")
@@ -288,7 +299,10 @@ class ContratDetailViewset(APIView):
         try:
             contrat.save()
         except IntegrityError:
-            return Response({'error': 'Impossible de sauvegarder le contrat dans la bdd'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Impossible de sauvegarder le contrat dans la bdd'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
         serializer = serializers.ContratSerializer(contrat)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -301,7 +315,7 @@ class ContratAllViewset(APIView):
         clients = models.Contrat.objects.all()
         serializer = serializers.ContratSerializer(clients, many=True)
         return Response(serializer.data)
-    
+
 
 class EvenementViewset(APIView):
 
@@ -314,18 +328,35 @@ class EvenementViewset(APIView):
             evenements = models.Evenement.objects.filter(support_contact__id=request.user.id)
         serializer = serializers.EvenementSerializer(evenements, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     def post(self, request):
         keysOKone = ['nom', 'date_start', 'date_end', 'location', 'attende', 'note', 'contrat_id', 'client_id']
-        keysOKtwo = ['nom', 'date_start', 'date_end', 'location', 'attende', 'note', 'contrat_id', 'first_name', 'last_name', 'entreprise']
+        keysOKtwo = [
+            'nom',
+            'date_start',
+            'date_end',
+            'location',
+            'attende',
+            'note',
+            'contrat_id',
+            'first_name',
+            'last_name',
+            'entreprise'
+            ]
         keysOKone = sorted(keysOKone)
         keysOKtwo = sorted(keysOKtwo)
         listKey = sorted(list(request.POST.keys()))
         if keysOKone != listKey and keysOKtwo != listKey:
-            return Response({'error': 'Erreur dans les informations presente dans le body'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Erreur dans les informations presente dans le body'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
         if request.POST.get("client_id"):
             try:
-                client = models.Client.objects.get(id=int(request.POST.get("client_id")),commercial_contact=request.user)
+                client = models.Client.objects.get(
+                    id=int(request.POST.get("client_id")),
+                    commercial_contact=request.user
+                    )
             except models.Client.DoesNotExist:
                 return Response({"message": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
         else:
@@ -341,7 +372,7 @@ class EvenementViewset(APIView):
         evenement = models.Evenement()
         evenement.client = client
         try:
-            contrat = models.Contrat.objects.get(id=int(request.POST.get("contrat_id")),client=client, statut=True)
+            contrat = models.Contrat.objects.get(id=int(request.POST.get("contrat_id")), client=client, statut=True)
         except models.Contrat.DoesNotExist:
             return Response({"message": "Contrat not found"}, status=status.HTTP_404_NOT_FOUND)
         evenement.contrat = contrat
@@ -360,7 +391,10 @@ class EvenementViewset(APIView):
         try:
             evenement.save()
         except IntegrityError:
-            return Response({'error': "Impossible de sauvegarder l'evenement dans la bdd"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': "Impossible de sauvegarder l'evenement dans la bdd"},
+                status=status.HTTP_400_BAD_REQUEST
+                )
         serializer = serializers.EvenementSerializer(evenement)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -373,18 +407,18 @@ class EvenementDetailViewset(APIView):
         if permissions.isThis(request.user.id, models.User.GESTION):
             try:
                 evenement = models.Evenement.objects.get(id=idEvenement)
-            except:
+            except models.Evenement.DoesNotExist:
                 return Response({"message": "Evenement not found"}, status=status.HTTP_404_NOT_FOUND)
             if request.POST.get("support_email"):
                 try:
                     support = models.User.objects.get(email=request.POST.get("support_email"))
                 except models.User.DoesNotExist:
                     return Response({"message": "User not found"}, status=status.HTTP_400_NOT_FOUND)
-                evenement.support_contact=support
+                evenement.support_contact = support
         else:
             try:
-                evenement = models.Evenement.objects.get(id=idEvenement,support_contact__id=request.user.id)
-            except:
+                evenement = models.Evenement.objects.get(id=idEvenement, support_contact__id=request.user.id)
+            except models.Evenement.DoesNotExist:
                 return Response({"message": "Evenement not found"}, status=status.HTTP_404_NOT_FOUND)
             if request.POST.get("nom"):
                 evenement.nom = request.POST.get("nom")
@@ -407,9 +441,13 @@ class EvenementDetailViewset(APIView):
         try:
             evenement.save()
         except IntegrityError:
-            return Response({'error': "Impossible de sauvegarder l'evenement' dans la bdd"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': "Impossible de sauvegarder l'evenement' dans la bdd"},
+                status=status.HTTP_400_BAD_REQUEST
+                )
         serializer = serializers.EvenementSerializer(evenement)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class EvenementAllViewset(APIView):
 

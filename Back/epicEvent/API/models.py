@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from phonenumber_field.modelfields import PhoneNumberField
 
+
 class User(AbstractUser):
     COMMERCIAL = "CO"
     SUPPORT = "SU"
@@ -26,7 +27,7 @@ class Client(models.Model):
     entreprise = models.CharField(max_length=128)
     time_created = models.DateTimeField(auto_now_add=True)
     time_update = models.DateTimeField(auto_now_add=True)
-    commercial_contact = models.ForeignKey(to=User, on_delete=models.CASCADE, blank=True,null=True)
+    commercial_contact = models.ForeignKey(to=User, on_delete=models.CASCADE, blank=True, null=True)
 
 
 class Contrat(models.Model):

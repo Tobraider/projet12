@@ -99,14 +99,14 @@ DATABASES = {
         'PASSWORD': os.getenv('DATABASE_PASSWORD'),
         'HOST': os.getenv('DATABASE_HOST'),
         'PORT': os.getenv('DATABASE_PORT'),
-        'OPTIONS':{
+        'OPTIONS': {
             'charset': 'utf8mb4',
         },
     },
 }
 
-if 'test' in sys.argv or 'test\_coverage' in sys.argv: #Covers regular testing and django-coverage
-    DATABASES['default']={
+if 'test' in sys.argv or 'test\_coverage' in sys.argv:  # Covers regular testing and django-coverage
+    DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': ':memory:',  # Utilisation de SQLite en mémoire pour les tests
     }
@@ -130,7 +130,6 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=59),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
-
 
 
 # Internationalization

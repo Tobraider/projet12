@@ -21,14 +21,16 @@ class ClientSerializer(ModelSerializer):
         model = models.Client
         fields = '__all__'
 
+
 class ClientWithoutCommercialSerializer(ModelSerializer):
 
     class Meta:
         model = models.Client
-        fields = ['id','email','first_name','last_name','tel','entreprise']
+        fields = ['id', 'email', 'first_name', 'last_name', 'tel', 'entreprise']
+
 
 class ContratSerializer(ModelSerializer):
-    
+
     client = ClientWithoutCommercialSerializer()
     commercial_contact = UserSerializer()
     statut = serializers.SerializerMethodField()
@@ -39,7 +41,6 @@ class ContratSerializer(ModelSerializer):
 
     def get_statut(self, obj):
         return 'signé' if obj.statut else 'non signé'
-
 
 
 class ContratWithoutClientSerializer(ModelSerializer):
