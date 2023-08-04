@@ -4,3 +4,4 @@
 **/.coverage
 **/htmlcov/
 **/flake-report/
+**/setup.cfg

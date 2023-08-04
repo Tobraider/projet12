@@ -1,8 +1,7 @@
-from rich import print, align
+from rich import print
 from rich.console import Console
 import click
-import requests
-from commande import initConfig, statusOK, parcoursList, optionData, argumentData, waitUser
+from commande import initConfig, statusOK, parcoursList, optionData, argumentData, waitUser, myRequests
 
 
 def templateUsers(console, listItem, here):
@@ -26,7 +25,8 @@ def templateUser(console, user):
     console.print(f"last_name : {user['last_name']}")
     console.print(f"role : {user['role']}")
 
-def templateUserStr(user,name=0):
+
+def templateUserStr(user, name=0):
     if name == 0:
         data = (
             f"[bold cyan]Contact commercial :[/bold cyan]\n"
@@ -46,7 +46,7 @@ def templateUserStr(user,name=0):
             f"  role : {user['role']}\n"
         )
     else:
-        data=""
+        data = ""
     return data
 
 
@@ -59,16 +59,18 @@ def user():
 def show():
     console = Console()
     conf = initConfig()
-    response = requests.get(conf['url']+'api/users/', headers=conf["headers"])
+    response = myRequests("get", conf['url']+'api/users/', headers=conf["headers"])
+    if not response:
+        return False
     if statusOK(response):
         reponseJson = response.json()
         if len(reponseJson) == 0:
-            console.rule(f"[red]0 utilisateur trouvé[red]", style="bold red", characters="=")
+            console.rule("[red]0 utilisateur trouvé[red]", style="bold red", characters="=")
         else:
             console.rule(f"[green]{len(reponseJson)} utilisateurs trouvés[/green]", style="bold green", characters="=")
-            console.print(f'\n')
+            console.print('\n')
             parcoursList(console, templateUsers, reponseJson)
-            console.print(f'\n')
+            console.print('\n')
             console.rule(style="bold green", characters="=")
 
 
@@ -82,20 +84,39 @@ def show():
 def create(email=None, password=None, validate_password=None, first_name=None, last_name=None, role=None):
     data = {}
     data = argumentData(data, email, 'email', "entrez l'email de l'utilsateur ")
-    data = argumentData(data, password, 'password', "entrez le mot de passe de l'utilisateur ",
-                      {'hide_input':True}, True, validate_password,
-                      "re rentrez le mot de passe de l'utilisateur afin de le valider ", {'hide_input':True},
-                      "[bold red]Le mot de passe n'a pas ete correctement validé[/bold red]")
+    data = argumentData(
+        data,
+        password,
+        'password',
+        "entrez le mot de passe de l'utilisateur ",
+        {
+            'hide_input': True
+        },
+        True,
+        validate_password,
+        "re rentrez le mot de passe de l'utilisateur afin de le valider ",
+        {
+            'hide_input': True
+        },
+        "[bold red]Le mot de passe n'a pas ete correctement validé[/bold red]"
+    )
     data = argumentData(data, first_name, 'first_name', "entrez le prenom de l'utilisateur ")
     data = argumentData(data, last_name, 'last_name', "entrez le nom de l'utilisateur ")
-    data = argumentData(data, role, 'role', "entrez le role ('Gestion'('GE'), 'Support'('SU') ou 'Commercial'('CO')) de l'utilisateur ")
+    data = argumentData(
+        data,
+        role,
+        'role',
+        "entrez le role ('Gestion'('GE'), 'Support'('SU') ou 'Commercial'('CO')) de l'utilisateur "
+    )
     conf = initConfig()
-    response = requests.post(conf['url']+'api/users/', headers=conf["headers"], data=data)
+    response = myRequests("post", conf['url']+'api/users/', headers=conf["headers"], data=data)
+    if not response:
+        return False
     if statusOK(response):
         reponseJson = response.json()
         if response.status_code == 201:
             console = Console()
-            console.rule(f"[green]Utilisateur créé avec succes ![green]", style="bold green", characters="=")
+            console.rule("[green]Utilisateur créé avec succes ![green]", style="bold green", characters="=")
             templateUser(console, reponseJson)
             console.rule(style="bold green", characters="=")
         else:
@@ -103,7 +124,7 @@ def create(email=None, password=None, validate_password=None, first_name=None, l
 
 
 @user.command()
-@click.argument('id',required=False)
+@click.argument('id', required=False)
 @click.option('--email')
 @click.option('--password')
 @click.option('--validate_password')
@@ -111,28 +132,50 @@ def create(email=None, password=None, validate_password=None, first_name=None, l
 @click.option('--last_name')
 @click.option("--role")
 def change(id=None, email=None, password=None, validate_password=None, first_name=None, last_name=None, role=None):
-    dataUrl = argumentData({}, id,'id',"id de l'utilisateur dont vous voulez modifier les données")
-    print("[bold cyan]Toutes les option laissez vide lors de l'appel vont vous etre demandé, veuillez ne rien rentrer si vous ne voulez pas les modifier[/bold cyan]")
+    dataUrl = argumentData({}, id, 'id', "id de l'utilisateur dont vous voulez modifier les données")
+    print(
+        "[bold cyan]Toutes les option laissez vide lors de l'appel vont vous etre demandé, "
+        "veuillez ne rien rentrer si vous ne voulez pas les modifier[/bold cyan]"
+    )
     waitUser()
     data = {}
     data = optionData(data, email, 'email', "entrez le nouvel email de l'utilsateur ")
-    data = optionData(data, password, 'password', "entrez le nouveau mot de passe de l'utilisateur ",
-                      {'hide_input':True}, True, validate_password,
-                      "re rentrez le nouveau mot de passe afin de le valider ", {'hide_input':True},
-                      "[bold red]Le mot de passe n'a pas ete correctement validé[/bold red]")
+    data = optionData(
+        data,
+        password,
+        'password',
+        "entrez le nouveau mot de passe de l'utilisateur ",
+        {
+            'hide_input': True
+        },
+        True,
+        validate_password,
+        "re rentrez le nouveau mot de passe afin de le valider ",
+        {
+            'hide_input': True
+        },
+        "[bold red]Le mot de passe n'a pas ete correctement validé[/bold red]"
+    )
     data = optionData(data, first_name, 'first_name', "entrez le nouveau prenom de l'utilisateur ")
     data = optionData(data, last_name, 'last_name', "entrez le nouveau nom de l'utilisateur ")
-    data = optionData(data, role, 'role', "entrez le nouveau role ('Gestion'('GE'), 'Support'('SU') ou 'Commercial'('CO')) de l'utilisateur ")
+    data = optionData(
+        data,
+        role,
+        'role',
+        "entrez le nouveau role ('Gestion'('GE'), 'Support'('SU') ou 'Commercial'('CO')) de l'utilisateur "
+    )
     if data == {}:
-        print(f"[bold red]Vous n'avez rien changer a l'utilisateur[/bold red]")
+        print("[bold red]Vous n'avez rien changer a l'utilisateur[/bold red]")
         return None
     conf = initConfig()
-    response = requests.put(conf['url']+'api/users/'+dataUrl['id']+'/', headers=conf["headers"], data=data)
+    response = myRequests("put", conf['url']+'api/users/'+dataUrl['id']+'/', headers=conf["headers"], data=data)
+    if not response:
+        return False
     if statusOK(response):
         reponseJson = response.json()
         if response.status_code == 200:
             console = Console()
-            console.rule(f"[green]Utilisateur modifié avec succes ![green]", style="bold green", characters="=")
+            console.rule("[green]Utilisateur modifié avec succes ![green]", style="bold green", characters="=")
             templateUser(console, reponseJson)
             console.rule(style="bold green", characters="=")
         else:
@@ -140,11 +183,13 @@ def change(id=None, email=None, password=None, validate_password=None, first_nam
 
 
 @user.command()
-@click.argument('id',required=False)
+@click.argument('id', required=False)
 def delete(id=None):
-    dataUrl = argumentData({}, id,'id',"id de l'utilisateur que vous voulez supprimer ?")
+    dataUrl = argumentData({}, id, 'id', "id de l'utilisateur que vous voulez supprimer ?")
     conf = initConfig()
-    response = requests.delete(conf['url']+'api/users/'+dataUrl['id']+'/', headers=conf["headers"])
+    response = myRequests("delete", conf['url']+'api/users/'+dataUrl['id']+'/', headers=conf["headers"])
+    if not response:
+        return False
     if statusOK(response):
         reponseJson = response.json()
         if response.status_code == 204:

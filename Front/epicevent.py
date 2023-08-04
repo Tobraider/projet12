@@ -1,13 +1,14 @@
 from rich import print
 import click
-import requests
 from templates import user, client, contrat, evenement
-from commande import initConfig
+from commande import initConfig, myRequests
 # import templates
+
 
 @click.group()
 def cli():
     pass
+
 
 @cli.command()
 @click.argument('email', required=False)
@@ -16,11 +17,13 @@ def login(email=None):
         email = click.prompt('entrez votre email ')
     password = click.prompt('entrez votre mot de passe ', hide_input=True)
     data = {
-        'email':email,
-        'password':password,
+        'email': email,
+        'password': password,
     }
     conf = initConfig()
-    response = requests.post(conf['url']+'api/login/', data=data)
+    response = myRequests("post", conf['url']+'api/login/', data=data)
+    if not response:
+        return False
     if response.status_code == 200:
         reponseJson = response.json()
         conf['config'].set('api', 'token', reponseJson['access'])
@@ -30,13 +33,14 @@ def login(email=None):
     else:
         print("[bold red]Erreur dans l'email ou le mot de passe[/bold red]")
 
+
 @cli.command()
 def logout():
     conf = initConfig()
     conf['config'].set('api', 'token', '')
     with open('config.cfg', 'w') as configfile:
         conf['config'].write(configfile)
-    print(f"[bold green]Vous etes deconnecté[/bold green]")
+    print("[bold green]Vous etes deconnecté[/bold green]")
 
 
 cli.add_command(user.user)

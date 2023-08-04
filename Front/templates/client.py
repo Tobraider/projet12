@@ -3,8 +3,7 @@ from rich.columns import Columns
 from rich.console import Console
 from datetime import datetime
 import click
-import requests
-from commande import initConfig, statusOK, parcoursList, optionData, argumentData, waitUser
+from commande import initConfig, statusOK, parcoursList, optionData, argumentData, waitUser, myRequests
 from templates.user import templateUserStr
 
 
@@ -16,6 +15,7 @@ def templateClients(console, listItem, here):
         console.print(Columns([printClient(client), templateUserStr(client['commercial_contact'])], expand=True))
     return end
 
+
 def printClient(client):
     data = (
         f"id : {client['id']}\n"
@@ -25,7 +25,8 @@ def printClient(client):
         f"telephone : {client['tel']}\n"
         f"entreprise : {client['entreprise']}\n"
         f"créé le {datetime.strptime(client['time_created'], '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%d/%m/%Y')}\n"
-        f"derniere modification faite le {datetime.strptime(client['time_update'], '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%d/%m/%Y')}"
+        f"derniere modification faite le "
+        f"{datetime.strptime(client['time_update'], '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%d/%m/%Y')}"
     )
     return data
 
@@ -33,6 +34,7 @@ def printClient(client):
 def templateClient(console, client):
     console.rule(f"Client {client['id']}", style="bold cyan", characters="=")
     console.print(Columns([printClient(client), templateUserStr(client['commercial_contact'])], expand=True))
+
 
 def templateClientStr(client):
     data = (
@@ -56,32 +58,37 @@ def client():
 def show():
     console = Console()
     conf = initConfig()
-    response = requests.get(conf['url']+'api/clients/all/', headers=conf["headers"])
+    response = myRequests("get", conf['url']+'api/clients/all/', headers=conf["headers"])
+    if not response:
+        return False
     if statusOK(response):
         reponseJson = response.json()
         if len(reponseJson) == 0:
-            console.rule(f"[red]0 client trouvé[red]", style="bold red", characters="=")
+            console.rule("[red]0 client trouvé[red]", style="bold red", characters="=")
         else:
             console.rule(f"[green]{len(reponseJson)} clients trouvés[/green]", style="bold green", characters="=")
-            console.print(f'\n')
+            console.print('\n')
             parcoursList(console, templateClients, reponseJson)
-            console.print(f'\n')
+            console.print('\n')
             console.rule(style="bold green", characters="=")
+
 
 @client.command()
 def showFilter():
     console = Console()
     conf = initConfig()
-    response = requests.get(conf['url']+'api/clients/', headers=conf["headers"])
+    response = myRequests("get", conf['url']+'api/clients/', headers=conf["headers"])
+    if not response:
+        return False
     if statusOK(response):
         reponseJson = response.json()
         if len(reponseJson) == 0:
-            console.rule(f"[red]0 client trouvé[red]", style="bold red", characters="=")
+            console.rule("[red]0 client trouvé[red]", style="bold red", characters="=")
         else:
             console.rule(f"[green]{len(reponseJson)} clients trouvés[/green]", style="bold green", characters="=")
-            console.print(f'\n')
+            console.print('\n')
             parcoursList(console, templateClients, reponseJson)
-            console.print(f'\n')
+            console.print('\n')
             console.rule(style="bold green", characters="=")
 
 
@@ -99,12 +106,14 @@ def create(email=None, first_name=None, last_name=None, tel=None, entreprise=Non
     data = argumentData(data, tel, 'tel', "entrez le numero de téléphone du client ")
     data = argumentData(data, entreprise, 'entreprise', "entrez l'entreprise du client ")
     conf = initConfig()
-    response = requests.post(conf['url']+'api/clients/', headers=conf["headers"], data=data)
+    response = myRequests("post", conf['url']+'api/clients/', headers=conf["headers"], data=data)
+    if not response:
+        return False
     if statusOK(response):
         reponseJson = response.json()
         if response.status_code == 201:
             console = Console()
-            console.rule(f"[green]Client créé avec succes ![green]", style="bold green", characters="=")
+            console.rule("[green]Client créé avec succes ![green]", style="bold green", characters="=")
             templateClient(console, reponseJson)
             console.rule(style="bold green", characters="=")
         else:
@@ -112,15 +121,18 @@ def create(email=None, first_name=None, last_name=None, tel=None, entreprise=Non
 
 
 @client.command()
-@click.argument('id',required=False)
+@click.argument('id', required=False)
 @click.option('--email')
 @click.option('--first_name')
 @click.option('--last_name')
 @click.option('--tel')
 @click.option('--entreprise')
 def change(id=None, email=None, first_name=None, last_name=None, tel=None, entreprise=None):
-    dataUrl = argumentData({}, id,'id',"id du contrat dont vous voulez modifier les données")
-    print("[bold cyan]Toutes les option laissez vide lors de l'appel vont vous etre demandé, veuillez ne rien rentrer si vous ne voulez pas les modifier[/bold cyan]")
+    dataUrl = argumentData({}, id, 'id', "id du contrat dont vous voulez modifier les données")
+    print(
+        "[bold cyan]Toutes les option laissez vide lors de l'appel vont vous etre demandé, "
+        "veuillez ne rien rentrer si vous ne voulez pas les modifier[/bold cyan]"
+    )
     waitUser()
     data = {}
     data = optionData(data, email, 'email', "entrez le nouvel email du client ")
@@ -129,15 +141,17 @@ def change(id=None, email=None, first_name=None, last_name=None, tel=None, entre
     data = optionData(data, tel, 'tel', "entrez le nouveau numero de téléphone du client ")
     data = optionData(data, entreprise, 'entreprise', "entrez la nouvelle entreprise du client ")
     if data == {}:
-        print(f"[bold red]Vous n'avez rien changer au client[/bold red]")
+        print("[bold red]Vous n'avez rien changer au client[/bold red]")
         return None
     conf = initConfig()
-    response = requests.put(conf['url']+'api/clients/'+dataUrl['id']+'/', headers=conf["headers"], data=data)
+    response = myRequests("put", conf['url']+'api/clients/'+dataUrl['id']+'/', headers=conf["headers"], data=data)
+    if not response:
+        return False
     if statusOK(response):
         reponseJson = response.json()
         if response.status_code == 200:
             console = Console()
-            console.rule(f"[green]Client modifié avec succes ![green]", style="bold green", characters="=")
+            console.rule("[green]Client modifié avec succes ![green]", style="bold green", characters="=")
             templateClient(console, reponseJson)
             console.rule(style="bold green", characters="=")
         else:
