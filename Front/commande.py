@@ -123,7 +123,6 @@ def waitUser():
 
 
 def myRequests(typeRequest, url, data={}, headers={}):
-    print("JE PASSE ICI LA ")
     if typeRequest == "get":
         try:
             return requests.get(url, headers=headers)
