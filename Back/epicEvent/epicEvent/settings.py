@@ -15,10 +15,21 @@ from pathlib import Path
 
 import sys
 
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+sentry_sdk.init(
+dsn="https://e9975838d7495196216d707889635622@o4505691142619136.ingest.sentry.io/4505691144716288",
+integrations=[DjangoIntegration()],
+send_default_pii=True,
+traces_sample_rate=1.0,
+profiles_sample_rate=1.0,
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
